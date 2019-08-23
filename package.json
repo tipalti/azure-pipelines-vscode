@@ -1,9 +1,9 @@
 {
-    "name": "azure-pipelines",
-    "displayName": "Azure Pipelines",
+    "name": "azure-pipelines-bugbash",
+    "displayName": "bugbash pipelines extension",
     "description": "Syntax highlighting, IntelliSense, and more for Azure Pipelines YAML",
     "version": "1.155.0",
-    "publisher": "ms-azure-devops",
+    "publisher": "HimanshuYadav",
     "repository": {
         "type": "git",
         "url": "https://github.com/Microsoft/azure-pipelines-vscode"
