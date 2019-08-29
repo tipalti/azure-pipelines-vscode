@@ -21,7 +21,7 @@ jobs:
       jobName: Release_CI
 
 # upload the package only if variable 'UploadPackage' is true
-- ${{ if eq(variables['Build.UploadPackage'], 'true') }}
+- ${{ if eq(variables['Build.UploadPackage'], 'true') }}:
   - job: 'Upload to GitHub'
 
     pool:
