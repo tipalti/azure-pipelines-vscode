@@ -19,13 +19,6 @@ trigger:
 name: $(BuildDefinitionName)_$(Build.SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 jobs:
-# source branch is equal to master
-- ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
   - template: common-steps.yml
     parameters:
       jobName: CI
-# Only use PR if this is the build reason
-- ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-  - template: common-steps.yml
-    parameters:
-      jobName: PR

@@ -13,8 +13,6 @@ pr: none
 name: $(BuildDefinitionName)_$(Build.SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 jobs:
-# source branch is under releases
-- ${{ if startswith(variables['Build.SourceBranch'], 'refs/heads/releases/') }}:
   # do all the normal build stuff
   - template: common-steps.yml
     parameters:
