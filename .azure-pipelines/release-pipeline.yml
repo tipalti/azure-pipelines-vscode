@@ -20,4 +20,4 @@ jobs:
 
 # upload the package only if variable 'UploadPackage' is true
 - ${{ if eq(variables['UploadPackage'], 'true') }}:
-  -template: upload-package.yml
+  - template: upload-package.yml
