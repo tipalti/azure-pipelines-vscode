@@ -64,4 +64,3 @@ jobs:
   - template: common-steps.yml
     parameters:
       jobName: PR
-      pr: true
