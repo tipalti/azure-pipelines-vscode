@@ -6,6 +6,10 @@ parameters:
 
 jobs:
   - job: ${{ parameters.jobname }}
+
+    pool:
+      vmImage: ubuntu-16.04
+
     steps:
     # for convenience, we tag CI-produced packages with a version number
     # pointing to the commit which was built. for PRs, also include the PR #.

@@ -16,11 +16,8 @@ trigger:
 
 name: $(BuildDefinitionName)_$(Build.SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
-pool:
-  vmImage: ubuntu-16.04
-
 jobs:
-  # source branch is equal to master
+# source branch is equal to master
 - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
   - template: common-steps.yml
     parameters:
