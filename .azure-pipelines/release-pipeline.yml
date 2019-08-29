@@ -18,14 +18,6 @@ pool:
 jobs:
 # source branch is under releases
 - ${{ if startswith(variables['Build.SourceBranch'], 'refs/heads/releases/') }}:
-  steps:
-  # release version should be correctly set in package.json
-  - bash: |
-      PACKAGE_VERSION=$(node -p "require('./package.json').version")
-      echo "##vso[build.updatebuildnumber]${PACKAGE_VERSION}_release_${BUILD_BUILDID}"
-      echo "$PACKAGE_VERSION" > version.txt
-    displayName: Set version number of build
-
   # do all the normal build stuff
   - template: common-steps.yml
     parameters:
