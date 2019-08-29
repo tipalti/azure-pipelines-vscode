@@ -22,7 +22,7 @@ jobs:
 
 # upload the package only if variable 'UploadPackage' is true
 - ${{ if eq(variables['Build.UploadPackage'], 'true') }}
-  - job: 'Upload'
+  - job: 'Upload to GitHub'
 
     pool:
       vmImage: ubuntu-16.04
