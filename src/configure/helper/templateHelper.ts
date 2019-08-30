@@ -34,6 +34,10 @@ export async function renderContent(templateFilePath: string, context: WizardInp
     return deferred.promise;
 }
 
+export function getGithubWorkflowTemplates(): PipelineTemplate[] {
+    return githubWorkflowTemplates;
+}
+
 async function analyzeRepo(repoPath: string): Promise<{ isNodeApplication: boolean }> {
     let deferred: Q.Deferred<{ isNodeApplication: boolean }> = Q.defer();
     fs.readdir(repoPath, (err, files: string[]) => {
@@ -93,6 +97,15 @@ const simpleWebAppTemplates: Array<PipelineTemplate> = [
         label: 'Simple application to Windows Web App',
         path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/simpleWebApp.yml'),
         language: 'none',
+        targetType: TargetResourceType.WindowsWebApp
+    }
+];
+
+const githubWorkflowTemplates: Array<PipelineTemplate> = [
+    {
+        label: 'Node.js application to Windows Web App',
+        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/githubWorkflows/nodejs.yml'),
+        language: 'node',
         targetType: TargetResourceType.WindowsWebApp
     }
 ];

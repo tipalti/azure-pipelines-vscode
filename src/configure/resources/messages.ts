@@ -1,5 +1,6 @@
 export class Messages {
     public static acquireTokenFromRefreshTokenFailed: string = 'Acquiring token with refresh token failed. Error: %s.';
+    public static addGitHubWorkflowFile: string = 'Add GitHub workflow file.';
     public static addYmlFile: string = 'Add Azure Pipeline Yml definition.';
     public static analyzingRepo: string = 'Analyzing your repo';
     public static appKindIsNotSupported: string = 'App of kind: %s is not yet supported.';
@@ -7,11 +8,15 @@ export class Messages {
     public static azureLoginRequired: string = 'Kindly sign in to your Azure Account before going forward.';
     public static branchRemoteMissing: string = `The current branch does not have a remote tracking branch and the selected repository has no remotes. Kindly, [set a remote tracking branch](https://git-scm.com/docs/git-branch#Documentation/git-branch.txt---track) with Azure Repos or GitHub to procceed.`;
     public static browsePipeline: string = 'Browse Pipeline';
+    public static browseWorkflow: string = 'Browse Workflow';
     public static cannotAddFileRemoteMissing: string = 'Cannot add yml file to your git repository, remote is not set';
     public static cannotIdentifyRespositoryDetails: string = 'Could not identify repository details. Ensure your git repo is managed with Azure Repos or GitHub';
     public static commitAndPush: string = 'Commit & Push';
     public static commitFailedErrorMessage: string =`Commit failed due to error: %s`;
+    public static configuringGitHubWorkflow: string = 'Configuring GitHub workflow...';
     public static configuringPipelineAndDeployment: string = 'Configuring Azure DevOps Pipeline and proceeding to deployment...';
+    public static copyAndOpenLabel: string = 'Copy & Open';
+    public static copyPublishingCredentials: string = 'To set the publishing credentials in your workflow, create a new secret with name \'azure_webapp_publish_profile\' in your repository. Copy the below secret value to add the secret';
     public static couldNotAuthorizeEndpoint: string = 'Could not authorize endpoint for use in Pipelines.';
     public static creatingAzureDevOpsOrganization: string = 'Creating Azure DevOps organization.';
     public static creatingAzureServiceConnection: string = 'Connecting azure pipelines with your subscription: %s';
@@ -24,6 +29,7 @@ export class Messages {
     public static failedToDetermineAzureRepoDetails: string = 'Failed to determine Azure Repo details from remote url. Please ensure that the remote points to a valid Azure Repos url.';
     public static githubPatTokenErrorMessage: string = 'GitHub PAT token cannot be empty.';
     public static githubPatTokenHelpMessage: string = 'GitHub PAT token with following permissions: full access of repository webhooks and services, read and write access to all repositories data.';
+    public static githubWorkflowSetupSuccessfully: string = 'GitHub workflow set up successfully !';
     public static modifyAndCommitFile: string = 'Modify and save your yaml file. %s will commit this file, push the branch \'%s\' to remote \'%s\' and proceed with deployment.';
     public static noAgentQueueFound: string = 'No Agent Queue found with pool name: %s';
     public static notAGitRepository: string = 'Selected workspace is not a git repository. Please select a git repository.';
@@ -38,6 +44,7 @@ export class Messages {
     public static resourceIdMissing: string = 'Required argument: resourceId, is missing. Kindly pass the argument for getting resource.';
     public static resourceTypeIsNotSupported: string = 'Resource of type: %s is not yet supported for configuring pipelines.';
     public static selectFolderLabel: string = 'Select source folder for configuring pipeline';
+    public static selectGitHubWorkflowTemplate: string = 'Select GitHub workflow template...';
     public static selectOrganization: string = 'Select Azure DevOps Organization';
     public static selectPipelineTemplate: string = 'Select Azure pipelines template...';
     public static selectProject: string = 'Select Azure DevOps project';
