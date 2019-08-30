@@ -47,5 +47,3 @@ jobs:
         displayName: Create GitHub Release
         env:
           GITHUB_TOKEN: $(GitHubSecret)
-    ${{ if eq(variables['UploadPackage'], 'true') }}:
-    - template: upload-package.yml
