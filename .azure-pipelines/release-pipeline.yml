@@ -19,7 +19,7 @@ jobs:
       jobName: Release_CI
   # upload the package to GitHub if variable 'UploadPackage' is true and branch is releases/*
   - job: 'UploadPackage'
-    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/releases/'), eq(variables['UploadPackage'], 'true'))
+    condition: and(succeeded(), and(startsWith(variables['Build.SourceBranch'], 'refs/heads/releases/'), eq(variables['UploadPackage'], 'true')))
     pool:
       vmImage: ubuntu-16.04
 
