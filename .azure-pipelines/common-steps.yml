@@ -73,6 +73,7 @@ jobs:
             version.txt
             branch.txt
             minichangelog.txt
+            .azurePipelines
           targetFolder: $(Build.ArtifactStagingDirectory)
 
       # Publish files as an artifact

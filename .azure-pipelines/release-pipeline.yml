@@ -42,10 +42,10 @@ stages:
 
         # create a GitHub Release
         - bash: |
-            export npm_config_cache=$(Build.SourcesDirectory)/.azure-pipelines/github-release/npm-cache
+            export npm_config_cache=$(Pipeline.Workspace)/.azure-pipelines/github-release/npm-cache
             npm install
           displayName: Prepare to create GitHub Release
-          workingDirectory: '$(Build.SourcesDirectory)/.azure-pipelines/github-release'
+          workingDirectory: '$(Pipeline.Workspace)/.azure-pipelines/github-release'
         - bash: |
             SCRIPT=.azure-pipelines/github-release/github-release.js
             VSIX=*.vsix
