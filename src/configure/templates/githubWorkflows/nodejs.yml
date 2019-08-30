@@ -23,4 +23,4 @@ jobs:
     - uses: azure/appservice-actions/webapp@master
       with: 
         app-name: {{{ targetResource.resource.name }}}
-        publish-profile: {{=<% %>=}}${{ secrets.azure_webapp_publish_profile }}<%={{ }}=%>
+        publish-profile: {{=<% %>=}}${{ secrets.<% targetResource.serviceConnectionId %> }}<%={{ }}=%>

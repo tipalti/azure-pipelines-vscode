@@ -16,12 +16,13 @@ export class Messages {
     public static configuringGitHubWorkflow: string = 'Configuring GitHub workflow...';
     public static configuringPipelineAndDeployment: string = 'Configuring Azure DevOps Pipeline and proceeding to deployment...';
     public static copyAndOpenLabel: string = 'Copy & Open';
-    public static copyPublishingCredentials: string = 'To set the publishing credentials in your workflow, create a new secret with name \'azure_webapp_publish_profile\' in your repository. Copy the below secret value to add the secret';
+    public static copyPublishingCredentials: string = 'To deploy to Azure App Service via GitHub workflow, create a new secret with name \'%s\' in your repository. Copy the below secret value to add the secret';
     public static couldNotAuthorizeEndpoint: string = 'Could not authorize endpoint for use in Pipelines.';
     public static creatingAzureDevOpsOrganization: string = 'Creating Azure DevOps organization.';
     public static creatingAzureServiceConnection: string = 'Connecting azure pipelines with your subscription: %s';
     public static creatingGitHubServiceConnection: string = 'Creating GitHub service connection';
     public static discardPipeline: string = 'Discard Pipeline';
+    public static discardWorkflow: string = 'Discard Workflow';
     public static enterAzureDevOpsOrganizationName: string = 'Azure DevOps organization name where your pipeline will be hosted';
     public static enterGitHubPat: string = 'Enter GitHub PAT token';
     public static failedToCreateAzureDevOpsProject: string = 'Failed to create project for Azure DevOps organization. Error: %s.';
@@ -31,6 +32,8 @@ export class Messages {
     public static githubPatTokenHelpMessage: string = 'GitHub PAT token with following permissions: full access of repository webhooks and services, read and write access to all repositories data.';
     public static githubWorkflowSetupSuccessfully: string = 'GitHub workflow set up successfully !';
     public static modifyAndCommitFile: string = 'Modify and save your yaml file. %s will commit this file, push the branch \'%s\' to remote \'%s\' and proceed with deployment.';
+    public static modifyAndCommitFileGitHubWorkflow: string = 'Modify and save your yaml file. %s will commit this file, push the branch \'%s\' to remote \'%s\'.';
+    public static nextLabel: string = 'Next';
     public static noAgentQueueFound: string = 'No Agent Queue found with pool name: %s';
     public static notAGitRepository: string = 'Selected workspace is not a git repository. Please select a git repository.';
     public static notAzureRepoUrl: string = 'Repo Url is not of Azure Repos type.';

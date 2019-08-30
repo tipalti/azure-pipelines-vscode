@@ -572,6 +572,9 @@ class PipelineConfigurer {
             await this.getAzureResourceDetails();
         }
 
+        let webAppName = this.inputs.targetResource.resource.name.replace(/[^a-zA-Z0-9]/g, '');
+        this.inputs.targetResource.serviceConnectionId = `${webAppName}_publishProfile`;
+
         // Create .github directory
         let workflowDirectoryPath = path.join(this.inputs.sourceRepository.localPath, '.github');
         if (!fs.existsSync(workflowDirectoryPath)) {
@@ -599,9 +602,17 @@ class PipelineConfigurer {
 
         if (copyAndOpen === Messages.copyAndOpenLabel) {
 
+            let nextSelected = "";
+            while(nextSelected !== Messages.nextLabel) {
+                nextSelected = await this.showCopyAndOpenNotification(publishXml, true);
+                if(nextSelected === undefined) {
+                    throw new UserCancelledError(Messages.operationCancelled);
+                }
+            }
+
             // Check-in yaml file to repository
             while (!this.inputs.sourceRepository.commitId) {
-                let commitOrDiscard = await vscode.window.showInformationMessage(utils.format(Messages.modifyAndCommitFile, Messages.commitAndPush, this.inputs.sourceRepository.branch, this.inputs.sourceRepository.remoteName), Messages.commitAndPush, Messages.discardPipeline);
+                let commitOrDiscard = await vscode.window.showInformationMessage(utils.format(Messages.modifyAndCommitFileGitHubWorkflow, Messages.commitAndPush, this.inputs.sourceRepository.branch, this.inputs.sourceRepository.remoteName), Messages.commitAndPush, Messages.discardWorkflow);
                 if (commitOrDiscard === Messages.commitAndPush) {
                     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: Messages.configuringGitHubWorkflow }, async (progress) => {
                         try {
@@ -629,13 +640,13 @@ class PipelineConfigurer {
         }
     }
 
-    private async showCopyAndOpenNotification(publishXml: string): Promise<string> {
-        let copyAndOpen = await vscode.window.showInformationMessage(Messages.copyPublishingCredentials, Messages.copyAndOpenLabel);
+    private async showCopyAndOpenNotification(publishXml: string, showNextButton = false): Promise<string> {
+        let actions: Array<string> = showNextButton ? [Messages.copyAndOpenLabel, Messages.nextLabel] : [Messages.copyAndOpenLabel];
+        let copyAndOpen = await vscode.window.showInformationMessage(utils.format(Messages.copyPublishingCredentials, this.inputs.targetResource.serviceConnectionId), ...actions);
         if (copyAndOpen === Messages.copyAndOpenLabel) {
             await vscode.env.clipboard.writeText(publishXml);
             await vscode.env.openExternal(vscode.Uri.parse(`https://github.com/${this.inputs.sourceRepository.repositoryId}/settings/secrets`));
         }
-        this.showCopyAndOpenNotification(publishXml);
         return copyAndOpen;
     }
 }
