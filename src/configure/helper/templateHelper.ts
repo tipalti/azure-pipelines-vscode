@@ -34,7 +34,8 @@ export async function renderContent(templateFilePath: string, context: WizardInp
     return deferred.promise;
 }
 
-export function getGithubWorkflowTemplates(): PipelineTemplate[] {
+export async function getGithubWorkflowTemplates(repoPath: string): Promise<PipelineTemplate[]> {
+    await analyzeRepo(repoPath);
     return githubWorkflowTemplates;
 }
 
@@ -103,7 +104,7 @@ const simpleWebAppTemplates: Array<PipelineTemplate> = [
 
 const githubWorkflowTemplates: Array<PipelineTemplate> = [
     {
-        label: 'Node.js application to Windows Web App',
+        label: 'Node.js application to Azure Web App',
         path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/githubWorkflows/nodejs.yml'),
         language: 'node',
         targetType: TargetResourceType.WindowsWebApp

@@ -94,8 +94,8 @@
         "commands": [
             {
                 "command": "configure-pipeline",
-                "title": "Configure Pipeline",
-                "category": "Azure Pipelines"
+                "title": "Configure Workflow",
+                "category": "DevOps Pipeline"
             }
         ],
         "menus": {

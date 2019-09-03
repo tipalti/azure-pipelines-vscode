@@ -556,7 +556,10 @@ class PipelineConfigurer {
 
     private async startGitHubWorkFlow(): Promise<void> {
         // Select workflow template
-        let appropriatePipelines: PipelineTemplate[] = templateHelper.getGithubWorkflowTemplates();
+        let appropriatePipelines: PipelineTemplate[] = await vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification, title: Messages.analyzingRepo },
+            () => templateHelper.getGithubWorkflowTemplates(this.inputs.sourceRepository.localPath)
+        );
 
         let selectedOption = await this.controlProvider.showQuickPick(
             constants.SelectPipelineTemplate,
@@ -572,8 +575,7 @@ class PipelineConfigurer {
             await this.getAzureResourceDetails();
         }
 
-        let webAppName = this.inputs.targetResource.resource.name.replace(/[^a-zA-Z0-9]/g, '');
-        this.inputs.targetResource.serviceConnectionId = `${webAppName}_publishProfile`;
+        this.inputs.targetResource.serviceConnectionId = 'publishProfile';
 
         // Create .github directory
         let workflowDirectoryPath = path.join(this.inputs.sourceRepository.localPath, '.github');

@@ -2,7 +2,7 @@ export class Messages {
     public static acquireTokenFromRefreshTokenFailed: string = 'Acquiring token with refresh token failed. Error: %s.';
     public static addGitHubWorkflowFile: string = 'Add GitHub workflow file.';
     public static addYmlFile: string = 'Add Azure Pipeline Yml definition.';
-    public static analyzingRepo: string = 'Analyzing your repo';
+    public static analyzingRepo: string = 'Analyzing your repository';
     public static appKindIsNotSupported: string = 'App of kind: %s is not yet supported.';
     public static azureAccountExntesionUnavailable: string = 'Azure-Account extension could not be fetched. Kindly check it is installed and activated.';
     public static azureLoginRequired: string = 'Kindly sign in to your Azure Account before going forward.';
@@ -52,8 +52,8 @@ export class Messages {
     public static selectPipelineTemplate: string = 'Select Azure pipelines template...';
     public static selectProject: string = 'Select Azure DevOps project';
     public static selectRemoteForBranch: string = 'Select the remote repository where you want to track your current branch';
-    public static selectSubscription: string = 'Select Azure Subscription';
-    public static selectWebApp: string = 'Select Web App';
+    public static selectSubscription: string = 'Select Azure Subscription to deploy your application';
+    public static selectWebApp: string = 'Select Azure Web App to deploy your application';
     public static selectWorkspaceFolder: string = 'Select a folder from your workspace to deploy';
     public static signInLabel: string = 'Sign In';
     public static unableToCreateAzureServiceConnection: string = `Unable to create azure service connection.\nOperation Status: %s\nMessage: %s\nService connection is not in ready state.`;
