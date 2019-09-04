@@ -458,7 +458,7 @@ class PipelineConfigurer {
         this.appServiceClient = new AppServiceClient(extensionVariables.azureAccountExtensionApi.sessions[0], this.inputs.targetResource.subscriptionId);
         let selectedResource: QuickPickItemWithData = await this.controlProvider.showQuickPick(
             constants.SelectWebApp,
-            this.appServiceClient.GetAppServices(WebAppKind.WindowsApp)
+            this.appServiceClient.GetAppServices([WebAppKind.WindowsApp])
                 .then((webApps) => webApps.map(x => { return { label: x.name, data: x }; })),
             { placeHolder: Messages.selectWebApp },
             TelemetryKeys.WebAppListCount);
@@ -572,7 +572,25 @@ class PipelineConfigurer {
 
         // Get Azure resource details
         if (!this.inputs.targetResource.resource) {
-            await this.getAzureResourceDetails();
+            // show available subscriptions and get the chosen one
+            let subscriptionList = extensionVariables.azureAccountExtensionApi.filters.map((subscriptionObject) => {
+                return <QuickPickItemWithData>{
+                    label: <string>subscriptionObject.subscription.displayName,
+                    data: subscriptionObject
+                };
+            });
+            let selectedSubscription: QuickPickItemWithData = await this.controlProvider.showQuickPick(constants.SelectSubscription, subscriptionList, { placeHolder: Messages.selectSubscription });
+            this.inputs.targetResource.subscriptionId = selectedSubscription.data.subscription.subscriptionId;
+
+            // show list of windows and linux web apps
+            this.appServiceClient = new AppServiceClient(extensionVariables.azureAccountExtensionApi.sessions[0], this.inputs.targetResource.subscriptionId);
+            let selectedResource: QuickPickItemWithData = await this.controlProvider.showQuickPick(
+                constants.SelectWebApp,
+                this.appServiceClient.GetAppServices([WebAppKind.WindowsApp, WebAppKind.LinuxApp])
+                    .then((webApps) => webApps.map(x => { return { label: x.name, data: x }; })),
+                { placeHolder: Messages.selectWebApp },
+                TelemetryKeys.WebAppListCount);
+            this.inputs.targetResource.resource = selectedResource.data;
         }
 
         this.inputs.targetResource.serviceConnectionId = 'publishProfile';

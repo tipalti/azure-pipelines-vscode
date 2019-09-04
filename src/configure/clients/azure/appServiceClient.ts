@@ -28,13 +28,13 @@ export class AppServiceClient extends AzureResourceClient {
         return await this.getResource(resourceId, AppServiceClient.apiVersion);
     }
 
-    public async GetAppServices(filterForResourceKind: WebAppKind): Promise<ResourceListResult> {
+    public async GetAppServices(filterForResourceKind: WebAppKind[]): Promise<ResourceListResult> {
         let resourceList: ResourceListResult = await this.getResourceList(AppServiceClient.resourceType);
 
         if (!!filterForResourceKind) {
             let filteredResourceList: ResourceListResult = [];
             resourceList.forEach((resource) => {
-                if (resource.kind === filterForResourceKind) {
+                if (filterForResourceKind.some((webAppKind) => webAppKind.toLowerCase() === resource.kind.toLowerCase())) {
                     filteredResourceList.push(resource);
                 }
             });
