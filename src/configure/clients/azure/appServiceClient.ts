@@ -7,8 +7,9 @@ import { ServiceClientCredentials } from 'ms-rest';
 import { AzureResourceClient } from './azureResourceClient';
 import { WebAppKind, ParsedAzureResourceId } from '../../model/models';
 import {Messages} from '../../resources/messages';
+import {IAzureResourceClient} from './IAzureResourceClient';
 
-export class AppServiceClient extends AzureResourceClient {
+export class AppServiceClient extends AzureResourceClient implements IAzureResourceClient {
 
     private static resourceType = 'Microsoft.Web/sites';
     private webSiteManagementClient: WebSiteManagementClient;
@@ -22,13 +23,14 @@ export class AppServiceClient extends AzureResourceClient {
         this.portalUrl = portalUrl;
     }
 
-    public async getAppServiceResource(resourceId: string): Promise<GenericResource> {
+    public async getResource(resourceId): Promise<GenericResource> {
         let parsedResourceId: ParsedAzureResourceId = new ParsedAzureResourceId(resourceId);
         return await this.webSiteManagementClient.webApps.get(parsedResourceId.resourceGroup, parsedResourceId.resourceName);
     }
 
-    public async GetAppServices(filterForResourceKind: WebAppKind): Promise<ResourceListResult> {
-        let resourceList: ResourceListResult = await this.getResourceList(AppServiceClient.resourceType);
+    public async getResources(filterForResourceKind: WebAppKind): Promise<ResourceListResult> {
+        let resourceList: ResourceListResult = await super.getResources(AppServiceClient.resourceType);
+
         if (!!filterForResourceKind) {
             let filteredResourceList: ResourceListResult = [];
             resourceList.forEach((resource) => {

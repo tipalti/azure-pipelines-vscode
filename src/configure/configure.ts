@@ -1,5 +1,6 @@
 const uuid = require('uuid/v4');
 import { AppServiceClient } from './clients/azure/appServiceClient';
+import { IAzureResourceClient } from './clients/azure/IAzureResourceClient';
 import { AzureDevOpsClient } from './clients/devOps/azureDevOpsClient';
 import { AzureDevOpsHelper } from './helper/devOps/azureDevOpsHelper';
 import { AzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
@@ -9,7 +10,7 @@ import { GraphHelper } from './helper/graphHelper';
 import { LocalGitRepoHelper } from './helper/LocalGitRepoHelper';
 import { Messages } from './resources/messages';
 import { ServiceConnectionHelper } from './helper/devOps/serviceConnectionHelper';
-import { SourceOptions, RepositoryProvider, extensionVariables, WizardInputs, WebAppKind, PipelineTemplate, QuickPickItemWithData, GitRepositoryParameters, GitBranchDetails } from './model/models';
+import { SourceOptions, RepositoryProvider, extensionVariables, WizardInputs, WebAppKind, PipelineTemplate, QuickPickItemWithData, GitRepositoryParameters, GitBranchDetails, TargetResourceType } from './model/models';
 import { TracePoints } from './resources/tracePoints';
 import { TelemetryKeys } from './resources/telemetryKeys';
 import * as constants from './resources/constants';
@@ -68,7 +69,7 @@ class PipelineConfigurer {
     private azureDevOpsClient: AzureDevOpsClient;
     private serviceConnectionHelper: ServiceConnectionHelper;
     private azureDevOpsHelper: AzureDevOpsHelper;
-    private appServiceClient: AppServiceClient;
+    private azureResourceClient: IAzureResourceClient;
     private workspacePath: string;
     private uniqueResourceNameSuffix: string;
     private controlProvider: ControlProvider;
@@ -171,7 +172,7 @@ class PipelineConfigurer {
 
     private async analyzeNode(node: any): Promise<void> {
         if (!!node && !!node.fullId) {
-            await this.extractAzureResourceFromNode(node);
+            await this.extractAzureWebAppFromNode(node);
         }
         else if (node && node.fsPath) {
             this.workspacePath = node.fsPath;
@@ -323,22 +324,22 @@ class PipelineConfigurer {
         return githubPat;
     }
 
-    private async extractAzureResourceFromNode(node: any): Promise<void> {
+    private async extractAzureWebAppFromNode(node: any): Promise<void> {
         this.inputs.targetResource.subscriptionId = node.root.subscriptionId;
         this.inputs.azureSession = getSubscriptionSession(this.inputs.targetResource.subscriptionId);
-        this.appServiceClient = new AppServiceClient(this.inputs.azureSession.credentials, this.inputs.azureSession.tenantId, this.inputs.azureSession.environment.portalUrl, this.inputs.targetResource.subscriptionId);
+        this.azureResourceClient = new AppServiceClient(this.inputs.azureSession.credentials, this.inputs.azureSession.tenantId, this.inputs.azureSession.environment.portalUrl, this.inputs.targetResource.subscriptionId);
 
         try {
-            let azureResource: GenericResource = await this.appServiceClient.getAppServiceResource((<AzureTreeItem>node).fullId);
+            let azureResource: GenericResource = await this.azureResourceClient.getResource((<AzureTreeItem>node).fullId);
 
             switch (azureResource.type ? azureResource.type.toLowerCase() : '') {
                 case 'Microsoft.Web/sites'.toLowerCase():
                     switch (azureResource.kind ? azureResource.kind.toLowerCase() : '') {
                         case WebAppKind.WindowsApp:
+                        case WebAppKind.LinuxApp:
                             this.inputs.targetResource.resource = azureResource;
                             break;
                         case WebAppKind.FunctionApp:
-                        case WebAppKind.LinuxApp:
                         case WebAppKind.LinuxContainerApp:
                         default:
                             throw new Error(utils.format(Messages.appKindIsNotSupported, azureResource.kind));
@@ -448,15 +449,27 @@ class PipelineConfigurer {
         this.inputs.targetResource.subscriptionId = selectedSubscription.data.subscription.subscriptionId;
         this.inputs.azureSession = getSubscriptionSession(this.inputs.targetResource.subscriptionId);
 
+        let listName: string = constants.SelectResource
+        let placeHolder: string = Messages.selectAzureResource;
+        let azureResourceListCountTelemetryKey: string = TelemetryKeys.AzureResourceListCount;
+        let listItems = null;
         // show available resources and get the chosen one
-        this.appServiceClient = new AppServiceClient(this.inputs.azureSession.credentials, this.inputs.azureSession.tenantId, this.inputs.azureSession.environment.portalUrl, this.inputs.targetResource.subscriptionId);
-        let selectedResource: QuickPickItemWithData = await this.controlProvider.showQuickPick(
-            constants.SelectWebApp,
-            this.appServiceClient.GetAppServices(WebAppKind.WindowsApp)
-                .then((webApps) => webApps.map(x => { return { label: x.name, data: x }; })),
-            { placeHolder: Messages.selectWebApp },
-            TelemetryKeys.WebAppListCount);
+        switch (this.inputs.pipelineParameters.pipelineTemplate.azureResourceFilters.targetType) {
+            case TargetResourceType.WebApp:
+                this.azureResourceClient = new AppServiceClient(this.inputs.azureSession.credentials, this.inputs.azureSession.tenantId, this.inputs.azureSession.environment.portalUrl, this.inputs.targetResource.subscriptionId);
+                listName = constants.SelectResource
+                placeHolder = Messages.selectWebApp;
+                azureResourceListCountTelemetryKey = TelemetryKeys.WebAppListCount;
+                listItems = this.azureResourceClient.getResources(this.inputs.pipelineParameters.pipelineTemplate.azureResourceFilters.webappKind)
+                .then((resources) => resources.map(x => { return { label: x.name, data: x }; }))
+                break;
+        }
 
+        let selectedResource: QuickPickItemWithData = await this.controlProvider.showQuickPick(
+            listName,
+            listItems,
+            { placeHolder: placeHolder },
+            azureResourceListCountTelemetryKey);
         this.inputs.targetResource.resource = selectedResource.data;
     }
 

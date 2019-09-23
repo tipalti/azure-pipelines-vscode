@@ -5,6 +5,7 @@ import { ServiceClientCredentials } from 'ms-rest';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { UIExtensionVariables, IAzureUserInput, ITelemetryReporter } from 'vscode-azureextensionui';
 import { Messages } from '../resources/messages';
+import { Language } from '../helper/templateHelper';
 
 class ExtensionVariables implements UIExtensionVariables {
     public azureAccountExtensionApi: AzureAccountExtensionExports;
@@ -83,8 +84,8 @@ export interface GitRepositoryParameters {
 export interface PipelineTemplate {
     path: string;
     label: string;
-    language: string;
-    targetType: TargetResourceType;
+    language: Language;
+    azureResourceFilters: { targetType: TargetResourceType, webappKind?: WebAppKind };
 }
 
 export enum SourceOptions {
@@ -100,7 +101,7 @@ export enum RepositoryProvider {
 
 export enum TargetResourceType {
     None = 'none',
-    WindowsWebApp = 'windowsWebApp'
+    WebApp = 'app'
 }
 
 export enum ServiceConnectionType {

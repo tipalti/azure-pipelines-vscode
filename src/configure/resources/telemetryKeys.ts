@@ -23,6 +23,7 @@ export class TelemetryKeys {
     // Count of drop down items
     public static OrganizationListCount = 'OrganizationListCount';
     public static ProjectListCount = 'ProjectListCount';
+    public static AzureResourceListCount = 'AzureResourceListCount';
     public static WebAppListCount = 'WebAppListCount';
     public static PipelineTempateListCount = 'pipelineTempateListCount';
 }

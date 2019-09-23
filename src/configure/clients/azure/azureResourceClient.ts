@@ -1,8 +1,9 @@
 import { ResourceListResult, GenericResource } from 'azure-arm-resource/lib/resource/models';
 import { ServiceClientCredentials } from 'ms-rest';
 import * as ResourceManagementClient from 'azure-arm-resource/lib/resource/resourceManagementClient';
+import {IAzureResourceClient} from './IAzureResourceClient';
 
-export class AzureResourceClient {
+export class AzureResourceClient implements IAzureResourceClient {
 
     private azureRmClient: ResourceManagementClient.ResourceManagementClient;
 
@@ -10,7 +11,7 @@ export class AzureResourceClient {
         this.azureRmClient = new ResourceManagementClient.ResourceManagementClient(credentials, subscriptionId);
     }
 
-    public async getResourceList(resourceType: string, followNextLink: boolean = true): Promise<ResourceListResult> {
+    public async getResources(resourceType: string, followNextLink: boolean = true): Promise<ResourceListResult> {
         let resourceListResult: ResourceListResult = await this.azureRmClient.resources.list({ filter: `resourceType eq '${resourceType}'` });
 
         if (followNextLink) {
