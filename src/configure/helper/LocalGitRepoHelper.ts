@@ -67,12 +67,7 @@ export class LocalGitRepoHelper {
 
     public async getGitRemoteUrl(remoteName: string): Promise<string|void> {
         let remoteUrl = await this.gitReference.remote(["get-url", remoteName]);
-        if (remoteUrl) {
-            remoteUrl = (<string>remoteUrl).trim();
-            if (remoteUrl[remoteUrl.length - 1] === '/') {
-                remoteUrl = remoteUrl.substr(0, remoteUrl.length - 1);
-            }
-        }
+        remoteUrl = this.cleanGitRemoteUrl(<string>remoteUrl);
 
         if (AzureDevOpsHelper.isAzureReposUrl(<string>remoteUrl)) {
             remoteUrl = AzureDevOpsHelper.getFormattedRemoteUrl(<string>remoteUrl);
@@ -81,6 +76,30 @@ export class LocalGitRepoHelper {
             remoteUrl = GitHubProvider.getFormattedRemoteUrl(<string>remoteUrl);
         }
         return remoteUrl;
+    }
+
+    public async setNewGitRemoteUrl(remoteName: string, remoteUrl: string): Promise<string|void> {
+        remoteUrl = this.cleanGitRemoteUrl(remoteUrl);
+        if (AzureDevOpsHelper.isAzureReposUrl(<string>remoteUrl)) {
+            remoteUrl = AzureDevOpsHelper.getFormattedRemoteUrl(<string>remoteUrl);
+        }
+        else if (GitHubProvider.isGitHubUrl(<string>remoteUrl)) {
+            remoteUrl = GitHubProvider.getFormattedRemoteUrl(<string>remoteUrl);
+        }
+
+        await this.gitReference.remote(["add", remoteName, remoteUrl]);
+        return remoteUrl;
+    }
+
+    private cleanGitRemoteUrl(remoteUrl: string): string {
+        if (remoteUrl) {
+            remoteUrl = (<string>remoteUrl).trim();
+            if (remoteUrl[remoteUrl.length - 1] === '/') {
+                remoteUrl = remoteUrl.substr(0, remoteUrl.length - 1);
+            }
+        }
+
+        return remoteUrl
     }
 
     /**

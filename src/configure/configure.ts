@@ -134,10 +134,6 @@ class PipelineConfigurer {
 
     private async createPreRequisites(): Promise<void> {
         if (this.inputs.isNewOrganization) {
-            this.inputs.project = {
-                id: "",
-                name: generateDevOpsProjectName(this.inputs.sourceRepository.repositoryName)
-            };
             await vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
@@ -242,7 +238,21 @@ class PipelineConfigurer {
             // Remote tracking branch is not set
             let remotes = await this.localGitRepoHelper.getGitRemotes();
             if (remotes.length === 0) {
-                throw new Error(Messages.branchRemoteMissing);
+                try {
+                    await this.controlProvider.showInformationBox('NoRemoteDisclaimer', Messages.branchRemoteMissing, 'Continue with new Azure Repos');
+                }
+                catch {
+                    throw new Error(Messages.branchRemoteMissing);
+                }
+
+                let repositoryName = path.basename(this.workspacePath);
+                await this.getNewAzureDevOpsOrganizationAndProjectInfo(repositoryName);
+                await this.localGitRepoHelper.setNewGitRemoteUrl('origin', `https://dev.azure.com/${this.inputs.organizationName}/${this.inputs.project.name}/_git/${repositoryName}`);
+
+                // re-initialize the git reference so that newly added remote is reflected
+                this.localGitRepoHelper = await LocalGitRepoHelper.GetHelperInstance(this.workspacePath);
+                gitBranchDetails = await this.localGitRepoHelper.getGitBranchDetails();
+                // TO-DO: Git credentials for new repository might be needed as user might not be a Azure Repo's user and thus operations after this might fail.
             }
             else if (remotes.length === 1) {
                 gitBranchDetails.remoteName = remotes[0].name;
@@ -390,24 +400,7 @@ class PipelineConfigurer {
                     this.inputs.project = selectedProject.data;
                 }
                 else {
-                    telemetryHelper.setTelemetry(TelemetryKeys.NewOrganization, 'true');
-
-                    this.inputs.isNewOrganization = true;
-                    let userName = this.inputs.azureSession.userId.substring(0, this.inputs.azureSession.userId.indexOf("@"));
-                    let organizationName = generateDevOpsOrganizationName(userName, this.inputs.sourceRepository.repositoryName);
-
-                    let validationErrorMessage = await this.azureDevOpsClient.validateOrganizationName(organizationName);
-                    if (validationErrorMessage) {
-                        this.inputs.organizationName = await this.controlProvider.showInputBox(
-                            constants.EnterOrganizationName,
-                            {
-                                placeHolder: Messages.enterAzureDevOpsOrganizationName,
-                                validateInput: (organizationName) => this.azureDevOpsClient.validateOrganizationName(organizationName)
-                            });
-                    }
-                    else {
-                        this.inputs.organizationName = organizationName;
-                    }
+                    await this.getNewAzureDevOpsOrganizationAndProjectInfo(this.inputs.sourceRepository.repositoryName);
                 }
             }
         }
@@ -416,6 +409,34 @@ class PipelineConfigurer {
             throw error;
         }
     }
+
+    private async getNewAzureDevOpsOrganizationAndProjectInfo(repositoryName: string): Promise<void> {
+        if (!this.azureDevOpsHelper) {
+            this.createAzureDevOpsClient();
+        }
+        telemetryHelper.setTelemetry(TelemetryKeys.NewOrganization, 'true');
+        this.inputs.isNewOrganization = true;
+        let userName = this.inputs.azureSession.userId.substring(0, this.inputs.azureSession.userId.indexOf("@"));
+        let organizationName = generateDevOpsOrganizationName(userName, repositoryName)
+        let validationErrorMessage = await this.azureDevOpsClient.validateOrganizationName(organizationName);
+        if (validationErrorMessage) {
+            this.inputs.organizationName = await this.controlProvider.showInputBox(
+                constants.EnterOrganizationName,
+                {
+                    placeHolder: Messages.enterAzureDevOpsOrganizationName,
+                    validateInput: (organizationName) => this.azureDevOpsClient.validateOrganizationName(organizationName)
+                });
+        }
+        else {
+            this.inputs.organizationName = organizationName;
+        }
+
+        this.inputs.project = {
+            id: "",
+            name: generateDevOpsProjectName(repositoryName)
+        };
+    }
+
 
     private async getSelectedPipeline(): Promise<void> {
         let appropriatePipelines: PipelineTemplate[] = await vscode.window.withProgress(
@@ -585,6 +606,10 @@ class PipelineConfigurer {
     }
 
     private createAzureDevOpsClient(): void {
+        if (!this.inputs.azureSession) {
+            this.inputs.azureSession = extensionVariables.azureAccountExtensionApi.sessions[0];
+        }
+
         this.azureDevOpsClient = new AzureDevOpsClient(this.inputs.azureSession.credentials);
         this.azureDevOpsHelper = new AzureDevOpsHelper(this.azureDevOpsClient);
     }
