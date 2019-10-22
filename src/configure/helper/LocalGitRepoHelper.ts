@@ -17,18 +17,14 @@ export class LocalGitRepoHelper {
     private constructor() {
     }
 
-    public static async GetHelperInstance(repositoryPath: string): Promise<LocalGitRepoHelper> {
-        try {
-            var repoService = new LocalGitRepoHelper();
-            repoService.initialize(repositoryPath);
-            await repoService.gitReference.status();
-            return repoService;
-        }
-        catch(error) {
-            let gitFolderExists = fs.existsSync(path.join(repositoryPath, ".git"));
-            telemetryHelper.setTelemetry(TelemetryKeys.GitFolderExists, gitFolderExists.toString());
-            throw new Error(Messages.notAGitRepository);
-        }
+    public static GetHelperInstance(repositoryPath: string): LocalGitRepoHelper {
+        var repoService = new LocalGitRepoHelper();
+        repoService.initialize(repositoryPath);
+
+        let gitFolderExists = fs.existsSync(path.join(repositoryPath, ".git"));
+        telemetryHelper.setTelemetry(TelemetryKeys.GitFolderExists, gitFolderExists.toString());
+        
+        return repoService;
     }
 
     public static async GetAvailableFileName(fileName:string, repoPath: string): Promise<string> {
@@ -48,6 +44,16 @@ export class LocalGitRepoHelper {
         });
 
         return deferred.promise;
+    }
+
+    public async isGitRepository(): Promise<boolean> {
+        try {
+            await this.gitReference.status();
+            return true;
+        }
+        catch(error) {
+            return false;
+        }
     }
 
     public async getGitBranchDetails(): Promise<GitBranchDetails> {
@@ -89,11 +95,10 @@ export class LocalGitRepoHelper {
      * @param context: inputs required to be filled in the yaml pipelines
      * @returns: thenable object which resolves once all files are added to the repository
      */
-    public async addContentToFile(content: string, fileName: string, repoPath: string): Promise<string> {
-        let filePath = path.join(repoPath, "/" + fileName);
-        fs.writeFileSync(filePath, content);
+    public async addContentToFile(content: string, pathToFile: string): Promise<string> {
+        fs.writeFileSync(pathToFile, content);
         await vscode.workspace.saveAll(true);
-        return fileName;
+        return pathToFile;
     }
 
     /**
@@ -101,9 +106,9 @@ export class LocalGitRepoHelper {
      * @param pipelineYamlPath : local path of yaml pipeline in the repository
      * @returns: thenable string which resolves to commitId once commit is pushed to remote branch, and failure message if unsuccessful
      */
-    public async commitAndPushPipelineFile(pipelineYamlPath: string, repositoryDetails: GitRepositoryParameters): Promise<string> {
+    public async commitAndPushPipelineFile(pipelineYamlPath: string, repositoryDetails: GitRepositoryParameters, commitMessage: string): Promise<string> {
         await this.gitReference.add(pipelineYamlPath);
-        await this.gitReference.commit(Messages.addYmlFile, pipelineYamlPath);
+        await this.gitReference.commit(commitMessage, pipelineYamlPath);
         let gitLog = await this.gitReference.log();
 
         if (repositoryDetails.remoteName && repositoryDetails.branch) {
@@ -121,6 +126,26 @@ export class LocalGitRepoHelper {
     public async getGitRootDirectory(): Promise<string> {
         let gitRootDir = await this.gitReference.revparse(["--show-toplevel"]);
         return path.normalize(gitRootDir.trim());
+    }
+
+    public async initializeGitRepository(remoteName: string, remoteUrl: string, filesToExcludeRegex?: string): Promise<void> {
+        let isGitRepository = await this.isGitRepository()
+
+        if(!isGitRepository) {
+            await this.gitReference.init();
+        }
+
+        try {
+            // Try to see if there are any commits
+            await this.gitReference.log();
+        }
+        catch(error) {
+            // Commit all files if there are not commits on this branch
+            await this.gitReference.add(`:!${filesToExcludeRegex}`);
+            await this.gitReference.commit("Initialized git repository");
+        }
+
+        await this.gitReference.addRemote(remoteName, remoteUrl);
     }
 
     private static getIncreamentalFileName(fileName: string, count: number): string {

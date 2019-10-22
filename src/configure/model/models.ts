@@ -27,13 +27,12 @@ export interface AzureAccountExtensionExports {
 
 export class WizardInputs {
     organizationName: string;
-    isNewOrganization: boolean;
     project: DevOpsProject;
+    isNewOrganization: boolean;
     sourceRepository: GitRepositoryParameters;
     targetResource: AzureParameters = new AzureParameters();
     pipelineParameters: PipelineParameters = new PipelineParameters();
     azureSession: AzureSession;
-    githubPATToken?: string;
 }
 
 export interface DevOpsProject {
@@ -63,7 +62,7 @@ export class AzureParameters {
 }
 
 export class PipelineParameters {
-    pipelineFileName: string;
+    pipelineFilePath: string;
     pipelineTemplate: PipelineTemplate;
     workingDirectory: string;
 }
@@ -76,8 +75,7 @@ export interface GitRepositoryParameters {
     remoteUrl: string;
     branch: string;
     commitId: string;
-    localPath?: string;
-    serviceConnectionId?: string; // Id of the service connection in Azure DevOps
+    localPath: string;
 }
 
 export interface PipelineTemplate {

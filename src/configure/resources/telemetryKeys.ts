@@ -14,6 +14,11 @@ export class TelemetryKeys {
     public static BrowsedDeploymentCenter = 'openedDeploymentCenter';
     public static BrowsedExistingPipeline = 'browsedExistingPipeline';
     public static ClickedConfigurePipeline = 'clickedConfigurePipeline';
+    public static UpdatedWebAppMetadata = 'updatedWebAppMetadata';
+    public static NewDevOpsRepository = 'newDevOpsRepository';
+
+    public static resourceType = 'resourceType';
+    public static resourceKind = 'resourceKind';
 
     // Durations
     public static ExtensionActivationDuration = 'extensionActivationDuration';

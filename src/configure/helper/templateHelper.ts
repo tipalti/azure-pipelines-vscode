@@ -1,30 +1,60 @@
-import { PipelineTemplate, TargetResourceType, WizardInputs, WebAppKind } from '../model/models';
+import { PipelineTemplate, WizardInputs, RepositoryProvider, TargetResourceType, WebAppKind } from '../model/models';
 import * as fs from 'fs';
 import * as Mustache from 'mustache';
 import * as path from 'path';
 import * as Q from 'q';
+import { Messages } from '../resources/messages';
+import { GenericResource } from 'azure-arm-resource/lib/resource/models';
 
-export async function analyzeRepoAndListAppropriatePipeline(repoPath: string): Promise<PipelineTemplate[]> {
-    // TO-DO: To populate the possible templates on the basis of azure target resource.
-    let templateList = simpleWebAppTemplates;
+export async function analyzeRepoAndListAppropriatePipeline(repoPath: string, repositoryProvider: RepositoryProvider, targetResource?: GenericResource): Promise<PipelineTemplate[]> {
     let analysisResult = await analyzeRepo(repoPath);
 
-
-    if (analysisResult.isNodeApplication) {
-        // add all node application templates
-        templateList = nodeTemplates.concat(templateList);
+    let templateList: { [key: string]: PipelineTemplate[] } = {};
+    switch (repositoryProvider) {
+        case RepositoryProvider.AzureRepos:
+            templateList = azurePipelineTemplates;
+            break;
+        case RepositoryProvider.Github:
+            templateList = githubWorklowTemplates;
+            break;
+        default:
+            throw new Error(Messages.cannotIdentifyRespositoryDetails);
     }
 
-    if (analysisResult.isPythonApplication) {
-        templateList = pythonTemplates.concat(templateList);
-    }
-    
-    if (analysisResult.isFunctionApplication) {
-        templateList = functionTemplates.concat(templateList);
+    let templateResult: PipelineTemplate[] = [];
+    analysisResult.languages.forEach((language) => {
+        switch (language) {
+            case SupportedLanguage.NODE:
+                if (templateList[SupportedLanguage.NODE]) {
+                    templateResult = templateResult.concat(templateList[SupportedLanguage.NODE]);
+                }
+                break;
+            case SupportedLanguage.PYTHON:
+                if (templateList[SupportedLanguage.PYTHON]) {
+                    templateResult = templateResult.concat(templateList[SupportedLanguage.PYTHON]);
+                }
+                break;
+            case SupportedLanguage.NONE:
+                    if (templateList[SupportedLanguage.NONE]) {
+                        templateResult = templateResult.concat(templateList[SupportedLanguage.NONE]);
+                    }
+                    break;
+            default:
+                break;
+        }
+    })
+
+    if (templateResult.length < 1 && templateList[SupportedLanguage.NONE] && templateList[SupportedLanguage.NONE].length > 0) {
+        templateResult = templateList[SupportedLanguage.NONE];
     }
 
-    // add all possible templates as we could not detect the appropriate onesı
-    return templateList;
+    if (analysisResult.isFunctionApp && azurePipelineTargetBasedTemplates[`${TargetResourceType.WebApp}-${WebAppKind.FunctionApp}`]) {
+        templateResult = azurePipelineTargetBasedTemplates[`${TargetResourceType.WebApp}-${WebAppKind.FunctionApp}`].concat(templateResult);
+    }
+
+    templateResult = targetResource && !!targetResource.type ? templateResult.filter((template) => !template.targetType || template.targetType.toLowerCase() === targetResource.type.toLowerCase()) : templateResult;
+    templateResult = targetResource && !!targetResource.kind ? templateResult.filter((template) => !template.targetKind || template.targetKind.toLowerCase() === targetResource.kind.toLowerCase()) : templateResult;
+    return templateResult;
 }
 
 export async function renderContent(templateFilePath: string, context: WizardInputs): Promise<string> {
@@ -42,16 +72,18 @@ export async function renderContent(templateFilePath: string, context: WizardInp
     return deferred.promise;
 }
 
-async function analyzeRepo(repoPath: string): Promise<{ isNodeApplication: boolean, isFunctionApplication: boolean, isPythonApplication: boolean }> {
-    let deferred: Q.Deferred<{ isNodeApplication: boolean, isFunctionApplication: boolean, isPythonApplication: boolean }> = Q.defer();
+async function analyzeRepo(repoPath: string): Promise<AnalysisResult> {
+    let deferred: Q.Deferred<AnalysisResult> = Q.defer();
     fs.readdir(repoPath, (err, files: string[]) => {
-        let result = {
-            isNodeApplication: err ? true : isNodeRepo(files),
-            isFunctionApplication: err ? true : isFunctionApp(files),
-            isPythonApplication: err ? true : isPythonRepo(files)
-            // isContainerApplication: isDockerRepo(files)
-        };
-        deferred.resolve(result);
+        let result: AnalysisResult = new AnalysisResult();
+        result.languages = [];
+        result.languages = isNodeRepo(files) ? result.languages.concat(SupportedLanguage.NODE) : result.languages;
+        result.languages = isPythonRepo(files) ? result.languages.concat(SupportedLanguage.PYTHON) : result.languages;
+        result.languages = result.languages.concat(SupportedLanguage.NONE);
+
+        result.isFunctionApp = err ? true : isFunctionApp(files),
+
+            deferred.resolve(result);
     });
 
     return deferred.promise;
@@ -65,12 +97,6 @@ function isNodeRepo(files: string[]): boolean {
     });
 }
 
-function isFunctionApp(files: string[]): boolean {
-    return files.some((file) => {
-        return file.toLowerCase().endsWith("host.json");
-    });   
-}
-
 function isPythonRepo(files: string[]): boolean {
     let pythonRegex = '.py$';
     return files.some((file) => {
@@ -79,91 +105,132 @@ function isPythonRepo(files: string[]): boolean {
     })
 }
 
-const nodeTemplates: Array<PipelineTemplate> = [
-    {
-        label: 'Node.js with npm to Windows Web App',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/nodejs.yml'),
-        language: 'node',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.WindowsApp
-    },
-    {
-        label: 'Node.js with Gulp to Windows Web App',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/nodejsWithGulp.yml'),
-        language: 'node',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.WindowsApp
-    },
-    {
-        label: 'Node.js with Grunt to Windows Web App',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/nodejsWithGrunt.yml'),
-        language: 'node',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.WindowsApp
-    },
-    {
-        label: 'Node.js with Angular to Windows Web App',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/nodejsWithAngular.yml'),
-        language: 'node',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.WindowsApp
-    },
-    {
-        label: 'Node.js with Webpack to Windows Web App',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/nodejsWithWebpack.yml'),
-        language: 'node',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.WindowsApp
-    }
-];
+function isFunctionApp(files: string[]): boolean {
+    return files.some((file) => {
+        return file.toLowerCase().endsWith("host.json");
+    });
+}
 
-const pythonTemplates: Array<PipelineTemplate> = [
-    {
-        label: 'Python to Linux Web App on Azure',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/pythonLinuxWebApp.yml'),
-        language: 'python',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.LinuxApp
-    },
-    {
-        label: 'Build and Test Python Django App',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/pythonDjango.yml'),
-        language: 'python',
-        targetType: TargetResourceType.None,
-        targetKind: null
-    }
-];
+export class AnalysisResult {
+    public languages: SupportedLanguage[];
+    public isFunctionApp: boolean;
+    // public isContainerized: boolean;
+}
 
-const simpleWebAppTemplates: Array<PipelineTemplate> = [
-    {
-        label: 'Simple application to Windows Web App',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/simpleWebApp.yml'),
-        language: 'none',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.WindowsApp
-    }
-];
+export enum SupportedLanguage {
+    NODE = 'node',
+    NONE = 'none',
+    PYTHON = 'python'
+}
 
-const functionTemplates: Array<PipelineTemplate> = [
-    {
-        label: 'Python Function App to Linux Azure Function',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/pythonLinuxFunctionApp.yml'),
-        language: 'python',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.FunctionAppLinux
-    },
-    {
-        label: 'Node.js Function App to Linux Azure Function',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/nodejsLinuxFunctionApp.yml'),
-        language: 'node',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.FunctionAppLinux
-    },
-    {
-        label: '.NET Core Function App to Windows Azure Function',
-        path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/dotnetcoreWindowsFunctionApp.yml'),
-        language: 'dotnet',
-        targetType: TargetResourceType.WebApp,
-        targetKind: WebAppKind.FunctionApp
-    },
-]
+let azurePipelineTemplates: { [key: string]: PipelineTemplate[] } =
+{
+    'none': [
+        {
+            label: 'Simple application to Windows Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/azurePipelineTemplates/simpleWebApp.yml'),
+            language: SupportedLanguage.NONE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.WindowsApp
+        }
+    ],
+    'node': [
+        {
+            label: 'Node.js with npm to Windows Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/azurePipelineTemplates/nodejs.yml'),
+            language: SupportedLanguage.NODE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.WindowsApp
+        },
+        {
+            label: 'Node.js with Gulp to Windows Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/azurePipelineTemplates/nodejsWithGulp.yml'),
+            language: SupportedLanguage.NODE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.WindowsApp
+        },
+        {
+            label: 'Node.js with Grunt to Windows Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/azurePipelineTemplates/nodejsWithGrunt.yml'),
+            language: SupportedLanguage.NODE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.WindowsApp
+        },
+        {
+            label: 'Node.js with Angular to Windows Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/azurePipelineTemplates/nodejsWithAngular.yml'),
+            language: SupportedLanguage.NODE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.WindowsApp
+        },
+        {
+            label: 'Node.js with Webpack to Windows Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/azurePipelineTemplates/nodejsWithWebpack.yml'),
+            language: SupportedLanguage.NODE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.WindowsApp
+        }
+    ],
+    'python': [
+        {
+            label: 'Python to Linux Web App on Azure',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/pythonLinuxWebApp.yml'),
+            language: 'python',
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.LinuxApp
+        },
+        {
+            label: 'Build and Test Python Django App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/pythonDjango.yml'),
+            language: 'python',
+            targetType: TargetResourceType.None,
+            targetKind: null
+        }
+    ]
+};
+
+let githubWorklowTemplates: { [key: string]: PipelineTemplate[] } = {
+    'node': [
+        {
+            label: 'Node.js with npm to Linux Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/githubWorkflowTemplates/nodejsOnLinux.yml'),
+            language: SupportedLanguage.NODE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.LinuxApp
+        },
+        {
+            label: 'Node.js with npm to Windows Web App',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/githubWorkflowTemplates/nodejsOnWindows.yml'),
+            language: SupportedLanguage.NODE,
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.WindowsApp
+        }
+    ]
+};
+
+const azurePipelineTargetBasedTemplates: { [key: string]: PipelineTemplate[] } =
+{
+    'Microsoft.Web/sites-functionapp': [
+        {
+            label: 'Python Function App to Linux Azure Function',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/pythonLinuxFunctionApp.yml'),
+            language: 'python',
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.FunctionAppLinux
+        },
+        {
+            label: 'Node.js Function App to Linux Azure Function',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/nodejsLinuxFunctionApp.yml'),
+            language: 'node',
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.FunctionAppLinux
+        },
+        {
+            label: '.NET Core Function App to Windows Azure Function',
+            path: path.join(path.dirname(path.dirname(__dirname)), 'configure/templates/dotnetcoreWindowsFunctionApp.yml'),
+            language: 'dotnet',
+            targetType: TargetResourceType.WebApp,
+            targetKind: WebAppKind.FunctionApp
+        },
+    ]
+}

@@ -1,8 +1,10 @@
 export class Messages {
     public static acquireTokenFromRefreshTokenFailed: string = 'Acquiring token with refresh token failed. Error: %s.';
-    public static addYmlFile: string = 'Add Azure Pipelines YAML definition.';
-    public static analyzingRepo: string = 'Analyzing your repo';
+    public static addAzurePipelinesYmlFile: string = 'Added Azure Pipelines YAML definition.';
+    public static addGitHubWorkflowYmlFile: string = 'Added GitHub Workflow YAML definition.';
+    public static analyzingRepo: string = 'Analyzing your repository';
     public static appKindIsNotSupported: string = 'App type "%s" is not yet supported.';
+    public static azureResourceIsNull: string = 'ArgumentNullException: resource. The Azure target resource is empty, kindly select a resource and try again.';
     public static azureAccountExntesionUnavailable: string = 'Azure-Account extension could not be fetched. Please ensure it\'s installed and activated.';
     public static azureLoginRequired: string = 'Please sign in to your Azure account first.';
     public static branchRemoteMissing: string = `The current branch doesn't have a tracking branch, and the selected repository has no remotes. We're unable to create a remote tracking branch. Please [set a remote tracking branch](https://git-scm.com/docs/git-branch#Documentation/git-branch.txt---track) first, and then try this again.`;
@@ -14,7 +16,7 @@ export class Messages {
     public static configuringPipelineAndDeployment: string = 'Configuring pipeline and proceeding to deployment...';
     public static couldNotAuthorizeEndpoint: string = 'Couldn\'t authorize endpoint for use in Azure Pipelines.';
     public static creatingAzureDevOpsOrganization: string = 'Creating Azure DevOps organization.';
-    public static creatingAzureServiceConnection: string = 'Connecting Azure Pipelines with your subscription: %s';
+    public static creatingAzureServiceConnection: string = 'Creating Azure deployment credentials with your subscription: %s';
     public static creatingGitHubServiceConnection: string = 'Creating GitHub service connection';
     public static discardPipeline: string = 'Discard pipeline';
     public static enterAzureDevOpsOrganizationName: string = 'Azure DevOps organization name where your pipeline will be hosted';
@@ -25,6 +27,7 @@ export class Messages {
     public static githubPatTokenErrorMessage: string = 'GitHub PAT token cannot be empty.';
     public static githubPatTokenHelpMessage: string = 'GitHub personal access token (PAT) with following permissions: full access to repository webhooks and services, read and write access to all repository data.';
     public static modifyAndCommitFile: string = 'Modify and save your YAML file. %s will commit this file, push the branch \'%s\' to remote \'%s\' and proceed with deployment.';
+    public static modifyAndCommitFileWithGitInitialization: string = 'Modify and save your YAML file to proceed with deployment.';
     public static noAgentQueueFound: string = 'No agent pool found named "%s".';
     public static notAGitRepository: string = 'Selected workspace is not a [Git](https://git-scm.com/docs/git) repository. Please select a Git repository.';
     public static notAzureRepoUrl: string = 'The repo isn\'t hosted with Azure Repos.';
@@ -39,7 +42,7 @@ export class Messages {
     public static resourceTypeIsNotSupported: string = '"%s" resources are not yet supported for configuring pipelines.';
     public static selectFolderLabel: string = 'Select source folder for configuring pipeline';
     public static selectOrganization: string = 'Select an Azure DevOps organization';
-    public static selectPipelineTemplate: string = 'Select an Azure Pipelines template...';
+    public static selectPipelineTemplate: string = 'Select a pipelines template...';
     public static selectProject: string = 'Select an Azure DevOps project';
     public static selectRemoteForBranch: string = 'Select the remote repository where you want to track your current branch';
     public static selectSubscription: string = 'Select an Azure subscription';
@@ -58,5 +61,9 @@ export class Messages {
     public static cannotFindOrganizationWithName = 'Unable to find organization with name: %s';
     public static browseNotAvailableConfigurePipeline = 'Unable to find a pipeline for this Azure Web App. Please click on "Configure Pipeline" to setup.';
     public static didNotRecieveAzureResourceNodeToProcess = 'Unable to browse the pipeline for you. Please raise an issue in the [repo](https://github.com/Microsoft/azure-pipelines-vscode/issues).';
-
+    public static copyAndOpenLabel: string = 'Copy & Open';
+    public static nextLabel: string = 'Next';
+    public static githubWorkflowSetupSuccessfully: string = 'GitHub workflow set up successfully !';
+    public static copyAndCreateSecretMessage: string = 'To deploy to Azure App Service via GitHub workflow, create a new secret with name \'%s\' in your repository. Copy the below secret value to add the secret';
+    public static browseWorkflow: string = 'Browse Workflow';
 }
