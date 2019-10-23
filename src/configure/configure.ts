@@ -5,7 +5,7 @@ import { AzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { GenericResource } from 'azure-arm-resource/lib/resource/models';
 import { LocalGitRepoHelper } from './helper/LocalGitRepoHelper';
 import { Messages } from './resources/messages';
-import { SourceOptions, RepositoryProvider, extensionVariables, WizardInputs, WebAppKind, PipelineTemplate, QuickPickItemWithData, GitRepositoryParameters, GitBranchDetails, TargetResourceType, PipelineParameters } from './model/models';
+import { SourceOptions, RepositoryProvider, extensionVariables, WizardInputs, WebAppKind, PipelineTemplate, QuickPickItemWithData, GitRepositoryParameters, GitBranchDetails, TargetResourceType } from './model/models';
 import { TracePoints } from './resources/tracePoints';
 import { TelemetryKeys } from './resources/telemetryKeys';
 import * as constants from './resources/constants';
