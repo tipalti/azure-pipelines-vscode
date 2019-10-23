@@ -21,7 +21,7 @@ import { Configurer } from './configurers/configurerBase';
 import { ConfigurerFactory } from './configurers/configurerFactory';
 
 const Layer: string = 'configure';
-export const UniqueResourceNameSuffix: string = uuid().substr(0, 5);
+export let UniqueResourceNameSuffix: string = uuid().substr(0, 5);
 
 export async function configurePipeline(node: AzureTreeItem) {
     await telemetryHelper.executeFunctionWithTimeTelemetry(async () => {
@@ -70,6 +70,7 @@ class Orchestrator {
     public constructor() {
         this.inputs = new WizardInputs();
         this.controlProvider = new ControlProvider();
+        UniqueResourceNameSuffix = uuid().substr(0, 5);
     }
 
     public async configure(node: any) {
