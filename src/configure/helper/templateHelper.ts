@@ -25,17 +25,17 @@ export async function analyzeRepoAndListAppropriatePipeline(repoPath: string, re
     analysisResult.languages.forEach((language) => {
         switch (language) {
             case SupportedLanguage.NODE:
-                if (templateList[SupportedLanguage.NODE]) {
+                if (templateList[SupportedLanguage.NODE] && templateList[SupportedLanguage.NODE].length > 0) {
                     templateResult = templateResult.concat(templateList[SupportedLanguage.NODE]);
                 }
                 break;
             case SupportedLanguage.PYTHON:
-                if (templateList[SupportedLanguage.PYTHON]) {
+                if (templateList[SupportedLanguage.PYTHON] && templateList[SupportedLanguage.PYTHON].length > 0) {
                     templateResult = templateResult.concat(templateList[SupportedLanguage.PYTHON]);
                 }
                 break;
             case SupportedLanguage.NONE:
-                    if (templateList[SupportedLanguage.NONE]) {
+                    if (templateList[SupportedLanguage.NONE] && templateList[SupportedLanguage.NONE].length > 0) {
                         templateResult = templateResult.concat(templateList[SupportedLanguage.NONE]);
                     }
                     break;
@@ -123,7 +123,7 @@ export enum SupportedLanguage {
     PYTHON = 'python'
 }
 
-let azurePipelineTemplates: { [key: string]: PipelineTemplate[] } =
+let azurePipelineTemplates: { [key in SupportedLanguage]: PipelineTemplate[] } =
 {
     'none': [
         {
@@ -189,7 +189,7 @@ let azurePipelineTemplates: { [key: string]: PipelineTemplate[] } =
     ]
 };
 
-let githubWorklowTemplates: { [key: string]: PipelineTemplate[] } = {
+let githubWorklowTemplates: { [key in SupportedLanguage]: PipelineTemplate[] } = {
     'node': [
         {
             label: 'Node.js with npm to Linux Web App',
@@ -205,7 +205,9 @@ let githubWorklowTemplates: { [key: string]: PipelineTemplate[] } = {
             targetType: TargetResourceType.WebApp,
             targetKind: WebAppKind.WindowsApp
         }
-    ]
+    ],
+    'none': [],
+    'python': []
 };
 
 const azurePipelineTargetBasedTemplates: { [key: string]: PipelineTemplate[] } =
