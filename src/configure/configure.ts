@@ -200,7 +200,7 @@ class Orchestrator {
             let gitRootDir = await this.localGitRepoHelper.getGitRootDirectory();
             this.inputs.pipelineParameters.workingDirectory = path.relative(gitRootDir, this.workspacePath);
 
-            this.inputs.sourceRepository = await this.getGitRepositoryParameters(gitBranchDetails);
+            this.inputs.sourceRepository = this.inputs.sourceRepository ? this.inputs.sourceRepository : await this.getGitRepositoryParameters(gitBranchDetails);
         }
         else {
             this.setDefaultRepositoryDetails();
