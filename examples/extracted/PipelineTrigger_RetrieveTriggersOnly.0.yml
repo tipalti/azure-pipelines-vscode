@@ -1,4 +1,0 @@
-trigger:
-- master
-steps:
-- script: echo hello
